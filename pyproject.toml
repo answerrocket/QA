@@ -1,0 +1,26 @@
+[project]
+name = "abi-skills"
+version = "0.1.0"
+description = "AnswerRocket skill development repository for abi skills"
+requires-python = ">=3.11"
+dependencies = [
+    "answerrocket-client>=0.2.55",
+    "numpy>=1.24.0",
+    "pandas>=2.0.0",
+    "playwright>=1.54.0",
+    "pytest>=8.4.1",
+    "python-dotenv>=1.1.1",
+    "skill-framework[ui]>=0.3.11",
+]
+
+[project.scripts]
+run-python = "builder_utils.py_ex:main"
+get-dataset-metadata = "builder_utils.get_dataset_metadata:main"
+execute-sql = "builder_utils.execute_sql:main"
+run-skill = "builder_utils.run_skill:main"
+sync-repo = "builder_utils.sync_repo:main"
+run-all-tests = "builder_utils.tests.run_all_tests:main"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"

@@ -1,0 +1,217 @@
+#!/bin/bash
+
+# Test Visualization - Virtual Environment Wrapper
+# This script activates the virtual environment and runs the visualization testing tool
+# Designed for Claude Code CLI to debug and fix visualizations
+
+# Get the project root directory (scripts -> builder-utils -> project root)
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+
+# Check if .venv exists
+if [ ! -d "$PROJECT_ROOT/.venv" ]; then
+    echo "❌ Error: Virtual environment not found at $PROJECT_ROOT/.venv"
+    echo "Please create a virtual environment first:"
+    echo "  python -m venv .venv"
+    echo "  source .venv/bin/activate"
+    echo "  pip install -e ."
+    exit 1
+fi
+
+# Function to show usage
+show_usage() {
+    echo "🧪 Visualization Testing Tool for Claude Code CLI"
+    echo ""
+    echo "Usage:"
+    echo "  test-visualization <skill_file.py> <skill_function_name> [options]"
+    echo ""
+    echo "Options:"
+    echo "  --json-only          Run only JSON validation (fast, no browser)"
+    echo "  --full-test          Run full browser test with console error detection"
+    echo "  --headless           Run browser in headless mode (default: true)"
+    echo "  --visible            Run browser in visible mode for debugging"
+    echo "  --parameters <json>  Pass parameters to skill as JSON string"
+    echo ""
+    echo "Examples:"
+    echo "  # Quick JSON validation only"
+    echo "  test-visualization my_skill.py my_skill_function --json-only"
+    echo ""
+    echo "  # Full browser test with console error detection"
+    echo "  test-visualization my_skill.py my_skill_function --full-test"
+    echo ""
+    echo "  # Test with parameters"
+    echo "  test-visualization my_skill.py my_skill_function --json-only --parameters '{\"param1\": \"value1\"}'"
+    echo ""
+    echo "  # Debug mode (visible browser)"
+    echo "  test-visualization my_skill.py my_skill_function --full-test --visible"
+}
+
+# Parse command line arguments
+SKILL_FILE=""
+SKILL_NAME=""
+TEST_MODE="json-only"  # Default to fast JSON validation
+HEADLESS="true"
+PARAMETERS="{}"
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --json-only)
+            TEST_MODE="json-only"
+            shift
+            ;;
+        --full-test)
+            TEST_MODE="full-test"
+            shift
+            ;;
+        --headless)
+            HEADLESS="true"
+            shift
+            ;;
+        --visible)
+            HEADLESS="false"
+            shift
+            ;;
+        --parameters)
+            PARAMETERS="$2"
+            shift 2
+            ;;
+        --help|-h)
+            show_usage
+            exit 0
+            ;;
+        -*)
+            echo "❌ Unknown option: $1"
+            show_usage
+            exit 1
+            ;;
+        *)
+            if [ -z "$SKILL_FILE" ]; then
+                SKILL_FILE="$1"
+            elif [ -z "$SKILL_NAME" ]; then
+                SKILL_NAME="$1"
+            else
+                echo "❌ Too many arguments: $1"
+                show_usage
+                exit 1
+            fi
+            shift
+            ;;
+    esac
+done
+
+# Validate required arguments
+if [ -z "$SKILL_FILE" ] || [ -z "$SKILL_NAME" ]; then
+    echo "❌ Error: Missing required arguments"
+    echo ""
+    show_usage
+    exit 1
+fi
+
+# Check if skill file exists
+if [ ! -f "$PROJECT_ROOT/$SKILL_FILE" ]; then
+    echo "❌ Error: Skill file not found: $PROJECT_ROOT/$SKILL_FILE"
+    exit 1
+fi
+
+# Activate virtual environment and run the command
+source "$PROJECT_ROOT/.venv/bin/activate"
+cd "$PROJECT_ROOT"
+
+echo "🧪 Testing visualization: $SKILL_NAME from $SKILL_FILE"
+echo "📋 Mode: $TEST_MODE"
+echo "🖥️  Headless: $HEADLESS"
+echo "⚙️  Parameters: $PARAMETERS"
+echo ""
+
+if [ "$TEST_MODE" = "json-only" ]; then
+    # Run JSON-only validation (fast)
+    python -c "
+import sys
+import json
+sys.path.append('.')
+from builder_utils.viz_previewer import quick_json_validation
+
+try:
+    parameters = json.loads('$PARAMETERS')
+except json.JSONDecodeError as e:
+    print('❌ Error parsing parameters JSON:', e)
+    sys.exit(1)
+
+result = quick_json_validation('$SKILL_FILE', '$SKILL_NAME', parameters)
+
+print('📝 JSON Validation Results:')
+print('=' * 50)
+print(f'Status: {\"✅ PASSED\" if result[\"success\"] else \"❌ FAILED\"}')
+
+if result['errors']:
+    print(f'\\n❌ Errors ({len(result[\"errors\"])}):')
+    for error in result['errors']:
+        print(f'  • {error}')
+
+if result['warnings']:
+    print(f'\\n⚠️ Warnings ({len(result[\"warnings\"])}):')
+    for warning in result['warnings']:
+        print(f'  • {warning}')
+
+print('=' * 50)
+print(result['test_summary'])
+
+# Exit with error code if validation failed
+sys.exit(0 if result['success'] else 1)
+"
+elif [ "$TEST_MODE" = "full-test" ]; then
+    # Run full browser test
+    python -c "
+import sys
+import json
+sys.path.append('.')
+from builder_utils.viz_previewer import test_skill_visualization_standalone
+
+try:
+    parameters = json.loads('$PARAMETERS')
+except json.JSONDecodeError as e:
+    print('❌ Error parsing parameters JSON:', e)
+    sys.exit(1)
+
+headless = '$HEADLESS' == 'true'
+result = test_skill_visualization_standalone('$SKILL_FILE', '$SKILL_NAME', parameters, headless)
+
+print('🌐 Full Browser Test Results:')
+print('=' * 50)
+print(f'Status: {\"✅ PASSED\" if result[\"success\"] else \"❌ FAILED\"}')
+
+if result['errors']:
+    print(f'\\n❌ Errors ({len(result[\"errors\"])}):')
+    for error in result['errors']:
+        print(f'  • {error}')
+
+if result['warnings']:
+    print(f'\\n⚠️ Warnings ({len(result[\"warnings\"])}):')
+    for warning in result['warnings']:
+        print(f'  • {warning}')
+
+if result['console_logs']:
+    print(f'\\n📝 Console Logs ({len(result[\"console_logs\"])}):')
+    for log in result['console_logs']:
+        icon = \"❌\" if log[\"type\"] == \"error\" else \"⚠️\" if log[\"type\"] == \"warning\" else \"ℹ️\"
+        print(f'  {icon} [{log[\"type\"].upper()}] {log[\"text\"]}')
+
+if result['performance_metrics']:
+    print(f'\\n⚡ Performance:')
+    for key, value in result['performance_metrics'].items():
+        if key == 'page_load_time':
+            print(f'  • Load Time: {value:.2f}s')
+        elif key == 'response_status':
+            print(f'  • Response Status: {value}')
+        else:
+            print(f'  • {key}: {value}')
+
+print('=' * 50)
+print(result['test_summary'])
+
+# Exit with error code if validation failed
+sys.exit(0 if result['success'] else 1)
+"
+else
+    echo "❌ Error: Invalid test mode: $TEST_MODE"
+    exit 1
+fi

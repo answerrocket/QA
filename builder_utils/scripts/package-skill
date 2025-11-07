@@ -1,0 +1,160 @@
+#!/bin/bash
+
+# Package Skill - Virtual Environment Wrapper
+# This script activates the virtual environment and packages a specific skill using skill-framework
+# Usage: ./builder_utils/scripts/package-skill <skill_file.py>
+
+# Check if skill file argument is provided
+if [ $# -eq 0 ]; then
+    echo "❌ Error: Please specify a skill file to package"
+    echo "Usage: ./builder_utils/scripts/package-skill <skill_file.py>"
+    echo "Example: ./builder_utils/scripts/package-skill trend_analysis.py"
+    exit 1
+fi
+
+SKILL_FILE="$1"
+
+# Get the project root directory (scripts -> builder-utils -> project root)
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+
+# Check if .venv exists
+if [ ! -d "$PROJECT_ROOT/.venv" ]; then
+    echo "❌ Error: Virtual environment not found at $PROJECT_ROOT/.venv"
+    echo "Please create a virtual environment first:"
+    echo "  python -m venv .venv"
+    echo "  source .venv/bin/activate"
+    echo "  pip install -e ."
+    exit 1
+fi
+
+# Activate virtual environment and run the command
+source "$PROJECT_ROOT/.venv/bin/activate"
+cd "$PROJECT_ROOT"
+
+# Use skill-framework's packaging functionality
+echo "📦 Packaging skill: $SKILL_FILE"
+python -c "
+import sys
+import os
+import zipfile
+import tempfile
+import shutil
+from pathlib import Path
+
+def validate_skill_file(skill_file_path):
+    '''Validate that the specified file exists and contains a skill definition'''
+    if not skill_file_path.exists():
+        print(f'❌ Error: Skill file not found: {skill_file_path}')
+        return False
+
+    if not skill_file_path.suffix == '.py':
+        print(f'❌ Error: Skill file must be a Python file (.py): {skill_file_path}')
+        return False
+
+    # Read the file and check if it contains @skill decorator
+    try:
+        with open(skill_file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+            if '@skill' not in content:
+                print(f'❌ Error: File does not contain @skill decorator: {skill_file_path}')
+                return False
+            if 'def ' not in content:
+                print(f'❌ Error: File does not contain function definitions: {skill_file_path}')
+                return False
+    except Exception as e:
+        print(f'❌ Error: Could not read skill file {skill_file_path}: {e}')
+        return False
+
+    return True
+
+def package_skill(skill_file_path):
+    '''Package a specific skill into a zip file for deployment'''
+    try:
+        # Validate the skill file
+        if not validate_skill_file(skill_file_path):
+            return False
+
+        print(f'Packaging skill: {skill_file_path.name}')
+
+        # Create a temporary directory for packaging
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+
+            # Copy the skill file to temp directory
+            shutil.copy2(skill_file_path, temp_path / skill_file_path.name)
+            print(f'  - {skill_file_path.name}')
+
+            # Copy skills.txt if it exists
+            skills_txt = Path.cwd() / 'skills.txt'
+            if skills_txt.exists():
+                shutil.copy2(skills_txt, temp_path / 'skills.txt')
+                print('  - skills.txt')
+
+            # Look for skill-specific directory with helper files
+            skill_name = skill_file_path.stem  # filename without extension
+            skill_dir = Path.cwd() / f'{skill_name}_skill'
+            if skill_dir.exists() and skill_dir.is_dir():
+                print(f'  - Found skill directory: {skill_dir.name}/')
+                # Copy all files from the skill directory
+                for file in skill_dir.rglob('*'):
+                    if file.is_file() and not file.name.startswith('.'):
+                        relative_path = file.relative_to(skill_dir)
+                        dest_path = temp_path / skill_dir.name / relative_path
+                        dest_path.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copy2(file, dest_path)
+                        print(f'    - {skill_dir.name}/{relative_path}')
+
+            # Copy any additional data files that might be related to this skill
+            for pattern in ['*.json', '*.csv', '*.txt']:
+                for file in Path.cwd().glob(pattern):
+                    if (not file.name.startswith('test_') and
+                        file.name != 'skills.txt' and
+                        skill_name.lower() in file.name.lower()):
+                        shutil.copy2(file, temp_path / file.name)
+                        print(f'  - {file.name}')
+
+            # Create the zip file with skill-specific name
+            zip_filename = f'{skill_name}_package.zip'
+            zip_path = Path.cwd() / zip_filename
+
+            with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                for file in temp_path.rglob('*'):
+                    if file.is_file():
+                        # Preserve directory structure in zip
+                        arcname = file.relative_to(temp_path)
+                        zipf.write(file, arcname)
+
+            print(f'\\n✅ Skill packaged successfully: {zip_path}')
+            print(f'Package size: {zip_path.stat().st_size} bytes')
+
+            # List contents of the zip file
+            print('\\nPackage contents:')
+            with zipfile.ZipFile(zip_path, 'r') as zipf:
+                for info in zipf.infolist():
+                    print(f'  - {info.filename} ({info.file_size} bytes)')
+
+            print('\\n🎉 Skill packaging completed successfully!')
+            print('\\nNext steps:')
+            print('1. Test your skill locally before deployment')
+            print('2. Upload the package to AnswerRocket')
+            print('3. Remove the zip file after deployment for security')
+
+            return True
+
+    except Exception as e:
+        print(f'❌ Error packaging skill: {e}')
+        return False
+
+if __name__ == '__main__':
+    # Get skill file from command line arguments
+    if len(sys.argv) < 2:
+        print('❌ Error: Please specify a skill file to package')
+        print('Usage: package-skill <skill_file.py>')
+        sys.exit(1)
+
+    skill_file_arg = sys.argv[1]
+    skill_file_path = Path(skill_file_arg)
+
+    success = package_skill(skill_file_path)
+    sys.exit(0 if success else 1)
+" "$SKILL_FILE"
