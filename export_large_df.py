@@ -16,10 +16,10 @@ def export_large_df(skill_input: SkillInput) -> SkillOutput:
     """Creates a sortable data table displaying top 100 rows"""
     # Generate full dataset
     df = pd.DataFrame({
-        'id': range(1, 65001),
-        'value': np.random.randint(0, 100, 65000),
-        'category': np.random.choice(['A', 'B', 'C', 'D'], 65000),
-        'score': np.random.uniform(0, 1, 65000)
+        'id': range(1, 100001),
+        'value': np.random.randint(0, 100, 100000),
+        'category': np.random.choice(['A', 'B', 'C', 'D'], 100000),
+        'score': np.random.uniform(0, 1, 100000)
     })
 
     # Take only top 100 rows for display
