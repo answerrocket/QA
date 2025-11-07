@@ -1,6 +1,7 @@
 import os
 import json
 import pandas as pd
+import numpy as np
 from dotenv import load_dotenv
 from answer_rocket import AnswerRocketClient
 from skill_framework import skill, SkillParameter, SkillInput, SkillOutput, SkillVisualization, ExportData, ExitFromSkillException
@@ -14,8 +15,10 @@ from skill_framework import skill, SkillParameter, SkillInput, SkillOutput, Skil
 def export_large_df(skill_input: SkillInput) -> SkillOutput:
     """Creates a sortable data table with configurable dimensions and metrics"""
     df = pd.DataFrame({
-        'row_num': range(6500),
-        'data': ['value'] * 6500
+        'id': range(1, 65001),
+        'value': np.random.randint(0, 100, 65000),
+        'category': np.random.choice(['A', 'B', 'C', 'D'], 65000),
+        'score': np.random.uniform(0, 1, 65000)
     })
     visualization = SkillVisualization(
         title="large_df",
@@ -30,7 +33,6 @@ def export_large_df(skill_input: SkillInput) -> SkillOutput:
     )
         
     return SkillOutput(
-        visualizations=[visualization],
         export_data=[export_data],
         final_prompt="large_df"
     )
