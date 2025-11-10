@@ -8,22 +8,34 @@ from skill_framework.layouts import wire_layout
 
 @skill(
     name="large_df",
-    description="output a large dataframe",
+    description="A skill to export a large dataframe",
     parameters=[
-    ]
+         SkillParameter(
+            name="size_of_df",
+            description="The size of the dataframe to export",
+            is_multi=False,
+            default_value="1000000"
+        ),
+        SkillParameter(
+            name="display_rows",
+            description="The number of rows to display in the artifact",
+            is_multi=False,
+            default_value="100"
+        )
+    ],
+    
 )
 def export_large_df(skill_input: SkillInput) -> SkillOutput:
-    """Creates a sortable data table displaying top 100 rows"""
     # Generate full dataset
     df = pd.DataFrame({
-        'id': range(1, 1000001),
-        'value': np.random.randint(0, 100, 1000000),
-        'category': np.random.choice(['A', 'B', 'C', 'D'], 1000000),
-        'score': np.random.uniform(0, 1, 1000000)
+        'id': range(1, int(skill_input.parameters["size_of_df"]) + 1),
+        'value': np.random.randint(0, 100, int(skill_input.parameters["size_of_df"])),
+        'category': np.random.choice(['A', 'B', 'C', 'D'], int(skill_input.parameters["size_of_df"])),
+        'score': np.random.uniform(0, 1, int(skill_input.parameters["size_of_df"]))
     })
 
     # Take only top 100 rows for display
-    df_display = df.head(100)
+    df_display = df.head(int(skill_input.parameters["display_rows"]))
 
     # Create layout structure for table
     table_layout = {
@@ -114,7 +126,7 @@ def export_large_df(skill_input: SkillInput) -> SkillOutput:
 
     # Wire the layout with data
     rendered_layout = wire_layout(table_layout, {
-        "title": f"Top 100 Rows (Total: {len(df):,} rows)",
+        "title": f"Top {int(skill_input.parameters['display_rows'])} Rows (Total: {len(df):,} rows)",
         "table_columns": table_columns,
         "table_data": table_data
     })
@@ -134,5 +146,5 @@ def export_large_df(skill_input: SkillInput) -> SkillOutput:
     return SkillOutput(
         visualizations=[visualization],
         export_data=[export_data],
-        final_prompt=f"Here are the top 100 rows from the dataset (total rows: {len(df):,})"
+        final_prompt=f"Here are the top {int(skill_input.parameters['display_rows'])} rows from the dataset (total rows: {len(df):,})"
     )
