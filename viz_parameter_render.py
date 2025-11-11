@@ -20,9 +20,9 @@ def viz_parameter_render(skill_input: SkillInput) -> SkillOutput:
 
     viz_layout = skill_input.arguments.viz_layout
 
-    layout = json.loads(viz_layout)    
+    layout = json.loads(viz_layout)
 
-    visualization = wire_layout(layout, input_variables={})
+    visualization = wire_layout(layout, input_values={})
 
     return SkillOutput(
         final_prompt="Here is the visualization you requested.",
