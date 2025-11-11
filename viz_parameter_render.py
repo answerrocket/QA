@@ -1,5 +1,5 @@
 import json
-from skill_framework import skill, SkillOutput, SkillParameter, SkillInput
+from skill_framework import skill, SkillOutput, SkillParameter, SkillInput, SkillVisualization
 from skill_framework.layouts import wire_layout
 
 
@@ -22,7 +22,14 @@ def viz_parameter_render(skill_input: SkillInput) -> SkillOutput:
 
     layout = json.loads(viz_layout)
 
-    visualization = wire_layout(layout, input_values={})
+    # wire_layout returns a JSON string
+    layout_json_string = wire_layout(layout, input_values={})
+
+    # Wrap in SkillVisualization
+    visualization = SkillVisualization(
+        title="Visualization Renderer",
+        layout=layout_json_string
+    )
 
     return SkillOutput(
         final_prompt="Here is the visualization you requested.",
