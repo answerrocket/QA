@@ -21,9 +21,10 @@ def viz_parameter_render(skill_input: SkillInput) -> SkillOutput:
     viz_layout = skill_input.arguments.viz_layout
 
     layout = json.loads(viz_layout)
-
+    ppt_layout = json.loads(viz_layout.replace("Document", "Canvas"))
     # wire_layout returns a JSON string
     layout_json_string = wire_layout(layout, input_values={})
+    ppt_layout_json_string = wire_layout(ppt_layout, input_values={})
 
     # Wrap in SkillVisualization
     visualization = SkillVisualization(
@@ -33,5 +34,6 @@ def viz_parameter_render(skill_input: SkillInput) -> SkillOutput:
 
     return SkillOutput(
         final_prompt="Here is the visualization you requested.",
-        visualizations=[visualization]
+        visualizations=[visualization],
+        ppt_slides=[ppt_layout_json_string]
     )
