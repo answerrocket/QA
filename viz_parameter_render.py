@@ -11,6 +11,11 @@ from skill_framework.layouts import wire_layout
                 name="viz_layout",
                 parameter_type="visualization",
                 description="Viz Layout",
+            ),
+            SkillParameter(
+                name="viz_ppt_layout",
+                parameter_type="visualization",
+                description="Viz PPT Layout",
             )
         ]
 
@@ -19,9 +24,10 @@ def viz_parameter_render(skill_input: SkillInput) -> SkillOutput:
     """Renders a visualization demonstrating the dynamic-layout framework."""
 
     viz_layout = skill_input.arguments.viz_layout
+    viz_ppt_layout = skill_input.arguments.viz_ppt_layout
 
     layout = json.loads(viz_layout)
-    ppt_layout = json.loads(viz_layout.replace("Document", "Canvas"))
+    ppt_layout = json.loads(viz_ppt_layout)
     # wire_layout returns a JSON string
     layout_json_string = wire_layout(layout, input_values={})
     ppt_layout_json_string = wire_layout(ppt_layout, input_values={})
