@@ -27,10 +27,14 @@ def viz_parameter_render(skill_input: SkillInput) -> SkillOutput:
     viz_ppt_layout = skill_input.arguments.viz_ppt_layout
 
     layout = json.loads(viz_layout)
-    ppt_layout = json.loads(viz_ppt_layout)
-    # wire_layout returns a JSON string
     layout_json_string = wire_layout(layout, input_values={})
-    ppt_layout_json_string = wire_layout(ppt_layout, input_values={})
+
+    if viz_ppt_layout is not None:
+        ppt_layout = json.loads(viz_ppt_layout)
+        ppt_layout_json_string = wire_layout(ppt_layout, input_values={})
+    else:
+        ppt_layout_json_string = layout_json_string
+
 
     # Wrap in SkillVisualization
     visualization = SkillVisualization(
