@@ -674,7 +674,7 @@ LAYOUT = """
                             "format": "{point.value:.2f}"
                         },
                         "tooltip": {
-                            "headerFormat": "<span style=\"color:{point.color}\">●</span> <b>{point.xCategory}</b> vs <b>{point.yCategory}</b><br/>",
+                            "headerFormat": "<span style=\\"color:{point.color}\\">●</span> <b>{point.xCategory}</b> vs <b>{point.yCategory}</b><br/>",
                             "pointFormat": "Correlation: {point.value:.2f}"
                         },
                         "data": [
@@ -791,7 +791,7 @@ def multiTabs(parameters: SkillInput) -> SkillOutput:
     viz_list = json.loads(LAYOUT)
 
     for tab in viz_list:
-        table = SkillVisualization(title="tab", 
-        layout=tab)
+        table = SkillVisualization(title="tab",
+        layout=json.dumps(tab))
         viz.append(table)
     return SkillOutput(visualizations=viz)
