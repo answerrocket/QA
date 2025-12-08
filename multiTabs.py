@@ -790,8 +790,8 @@ def multiTabs(parameters: SkillInput) -> SkillOutput:
     viz = []
     viz_list = json.loads(LAYOUT)
 
-    for i, viz in enumerate(viz_list):
-        table = SkillVisualization(title=f"tab{i}", 
-        layout=viz)
+    for tab in viz_list:
+        table = SkillVisualization(title="tab", 
+        layout=tab)
         viz.append(table)
     return SkillOutput(visualizations=viz)
