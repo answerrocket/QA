@@ -396,7 +396,7 @@ def table_block_diagnostics(skill_input: SkillInput) -> SkillOutput:
     # Create dummy data matching the layout's expected structure
     # The layout expects: headline, sub_headline, col_defs, data, table_footer, exec_summary
 
-    # Dummy column definitions for 3 brands with 3 metrics each
+    # Dummy column definitions for 5 brands with 3 metrics each
     col_defs = [
         {"name": "MDS", "group": " ", "style": {"text-align": "left"}},
         {"name": "Current Score", "group": "Brand A", "style": {"text-align": "center"}},
@@ -408,24 +408,48 @@ def table_block_diagnostics(skill_input: SkillInput) -> SkillOutput:
         {"name": "Current Score", "group": "Brand C", "style": {"text-align": "center"}},
         {"name": "% Change", "group": "Brand C", "style": {"text-align": "center"}},
         {"name": "Vs Competitor", "group": "Brand C", "style": {"text-align": "center"}},
+        {"name": "Current Score", "group": "Brand D", "style": {"text-align": "center"}},
+        {"name": "% Change", "group": "Brand D", "style": {"text-align": "center"}},
+        {"name": "Vs Competitor", "group": "Brand D", "style": {"text-align": "center"}},
+        {"name": "Current Score", "group": "Brand E", "style": {"text-align": "center"}},
+        {"name": "% Change", "group": "Brand E", "style": {"text-align": "center"}},
+        {"name": "Vs Competitor", "group": "Brand E", "style": {"text-align": "center"}},
     ]
 
-    # Dummy table data rows
+    # Dummy table data rows (16 MDS metrics x 5 brands)
     dummy_data = [
-        ["Metric 1", "85%", "+3%", "0%", "72%", "-2%", "-13% ↓", "65%", "+1%", "-20% ↓"],
-        ["Metric 2", "91%", "+1%", "0%", "88%", "-1%", "-3%", "79%", "+2%", "-12% ↓"],
-        ["Metric 3", "68%", "-2%", "0%", "71%", "+4%", "+3% ↑", "55%", "-3%", "-13% ↓"],
-        ["Metric 4", "45%", "+5%", "0%", "42%", "+2%", "-3%", "38%", "-1%", "-7% ↓"],
+        ["Unaided Awareness", "85%", "+3%", "0%", "72%", "-2%", "-13% ↓", "65%", "+1%", "-20% ↓", "58%", "+4%", "-27% ↓", "51%", "-1%", "-34% ↓"],
+        ["Total Brand Awareness", "91%", "+1%", "0%", "88%", "-1%", "-3%", "79%", "+2%", "-12% ↓", "82%", "+3%", "-9% ↓", "75%", "+1%", "-16% ↓"],
+        ["Total Consideration", "68%", "-2%", "0%", "71%", "+4%", "+3% ↑", "55%", "-3%", "-13% ↓", "61%", "+2%", "-7% ↓", "49%", "-1%", "-19% ↓"],
+        ["Past 12 Month Usage", "45%", "+5%", "0%", "42%", "+2%", "-3%", "38%", "-1%", "-7% ↓", "35%", "+3%", "-10% ↓", "31%", "+1%", "-14% ↓"],
+        ["Purchase Intent", "52%", "+4%", "0%", "48%", "+1%", "-4%", "41%", "-2%", "-11% ↓", "44%", "+2%", "-8% ↓", "37%", "-1%", "-15% ↓"],
+        ["Brand Preference", "39%", "+2%", "0%", "35%", "-3%", "-4%", "28%", "+1%", "-11% ↓", "32%", "+4%", "-7% ↓", "25%", "-2%", "-14% ↓"],
+        ["Net Promoter Score", "62%", "+6%", "0%", "54%", "+2%", "-8% ↓", "47%", "-1%", "-15% ↓", "51%", "+3%", "-11% ↓", "43%", "+1%", "-19% ↓"],
+        ["Customer Satisfaction", "78%", "+1%", "0%", "75%", "+3%", "-3%", "69%", "+2%", "-9% ↓", "72%", "+1%", "-6%", "66%", "-1%", "-12% ↓"],
+        ["Brand Trust", "81%", "+2%", "0%", "76%", "-1%", "-5%", "71%", "+1%", "-10% ↓", "74%", "+2%", "-7% ↓", "68%", "+1%", "-13% ↓"],
+        ["Value Perception", "59%", "-1%", "0%", "63%", "+5%", "+4% ↑", "52%", "-2%", "-7% ↓", "56%", "+3%", "-3%", "48%", "+1%", "-11% ↓"],
+        ["Quality Perception", "83%", "+3%", "0%", "79%", "+1%", "-4%", "74%", "+2%", "-9% ↓", "77%", "+2%", "-6%", "71%", "-1%", "-12% ↓"],
+        ["Innovation Score", "67%", "+7%", "0%", "58%", "+4%", "-9% ↓", "49%", "+3%", "-18% ↓", "53%", "+5%", "-14% ↓", "44%", "+2%", "-23% ↓"],
+        ["Emotional Connection", "55%", "+4%", "0%", "51%", "+2%", "-4%", "43%", "-1%", "-12% ↓", "47%", "+3%", "-8% ↓", "39%", "+1%", "-16% ↓"],
+        ["Brand Loyalty", "61%", "+3%", "0%", "57%", "+1%", "-4%", "49%", "+2%", "-12% ↓", "53%", "+2%", "-8% ↓", "45%", "-1%", "-16% ↓"],
+        ["Recommendation Likelihood", "58%", "+5%", "0%", "52%", "+3%", "-6%", "44%", "+1%", "-14% ↓", "48%", "+4%", "-10% ↓", "41%", "+2%", "-17% ↓"],
+        ["Price Sensitivity", "42%", "-2%", "0%", "47%", "+1%", "+5% ↑", "53%", "+3%", "+11% ↑", "49%", "+2%", "+7% ↑", "56%", "+4%", "+14% ↑"],
     ]
 
     # Dummy executive summary
-    exec_summary = """**Brand Performance Summary**
+    exec_summary = """**Brand Performance Summary (5 Brands, 16 MDS Metrics)**
 
-- **Brand A**: Strong performance across all metrics with 85% on Metric 1 (+3% growth)
-- **Brand B**: Moderate performance with some decline in Metric 1 (-2%)
-- **Brand C**: Underperforming relative to competitors, showing -20% gap on Metric 1
+- **Brand A**: Market leader with strongest scores across all 16 metrics. Top performer in Brand Trust (81%), Total Brand Awareness (91%), Quality Perception (83%), and Customer Satisfaction (78%). Innovation Score showing strongest growth (+7%). Lowest Price Sensitivity (42%) indicates premium positioning.
+- **Brand B**: Strong challenger with competitive Brand Awareness (88%) and improving Value Perception (+5%). Shows strength in Total Consideration (+4%) outperforming Brand A. Net Promoter Score trails by 8 points.
+- **Brand C**: Mid-tier performer with consistent gaps of 10-20% vs Brand A. Highest Price Sensitivity (53%) among top 3 brands suggests value-focused positioning. Needs improvement in Unaided Awareness (65%) and Brand Preference (28%).
+- **Brand D**: Emerging competitor showing growth momentum with strong gains in Innovation Score (+5%) and Brand Preference (+4%). Closing gap on Brand C in most metrics.
+- **Brand E**: Trailing brand with largest gaps vs market leader (20-35% behind Brand A). Highest Price Sensitivity (56%) indicates budget positioning. Recommendation Likelihood and Brand Loyalty need strategic focus.
 
-Key insight: Brand A maintains market leadership while Brand C needs strategic attention."""
+**Key Insights:**
+1. Brand A dominates premium segment with trust, quality, and low price sensitivity
+2. Brand B positioned as strong value alternative with growth in consideration metrics
+3. Brands C-E show opportunity in emotional connection and brand loyalty improvement
+4. Price Sensitivity inversely correlates with brand strength - opportunity for value messaging"""
 
     # Wire the layout with dummy data
     rendered_layout = wire_layout(layout_config, {
@@ -443,15 +467,25 @@ Key insight: Brand A maintains market leadership while Brand C needs strategic a
         layout=rendered_layout
     )
 
-    # Create dummy DataFrame for export
+    # Create dummy DataFrame for export (16 MDS metrics x 5 brands)
     df = pd.DataFrame({
-        'MDS': ['Metric 1', 'Metric 2', 'Metric 3', 'Metric 4'],
-        'Brand_A_Score': [85, 91, 68, 45],
-        'Brand_A_Change': [3, 1, -2, 5],
-        'Brand_B_Score': [72, 88, 71, 42],
-        'Brand_B_Change': [-2, -1, 4, 2],
-        'Brand_C_Score': [65, 79, 55, 38],
-        'Brand_C_Change': [1, 2, -3, -1]
+        'MDS': [
+            'Unaided Awareness', 'Total Brand Awareness', 'Total Consideration',
+            'Past 12 Month Usage', 'Purchase Intent', 'Brand Preference',
+            'Net Promoter Score', 'Customer Satisfaction', 'Brand Trust',
+            'Value Perception', 'Quality Perception', 'Innovation Score',
+            'Emotional Connection', 'Brand Loyalty', 'Recommendation Likelihood', 'Price Sensitivity'
+        ],
+        'Brand_A_Score': [85, 91, 68, 45, 52, 39, 62, 78, 81, 59, 83, 67, 55, 61, 58, 42],
+        'Brand_A_Change': [3, 1, -2, 5, 4, 2, 6, 1, 2, -1, 3, 7, 4, 3, 5, -2],
+        'Brand_B_Score': [72, 88, 71, 42, 48, 35, 54, 75, 76, 63, 79, 58, 51, 57, 52, 47],
+        'Brand_B_Change': [-2, -1, 4, 2, 1, -3, 2, 3, -1, 5, 1, 4, 2, 1, 3, 1],
+        'Brand_C_Score': [65, 79, 55, 38, 41, 28, 47, 69, 71, 52, 74, 49, 43, 49, 44, 53],
+        'Brand_C_Change': [1, 2, -3, -1, -2, 1, -1, 2, 1, -2, 2, 3, -1, 2, 1, 3],
+        'Brand_D_Score': [58, 82, 61, 35, 44, 32, 51, 72, 74, 56, 77, 53, 47, 53, 48, 49],
+        'Brand_D_Change': [4, 3, 2, 3, 2, 4, 3, 1, 2, 3, 2, 5, 3, 2, 4, 2],
+        'Brand_E_Score': [51, 75, 49, 31, 37, 25, 43, 66, 68, 48, 71, 44, 39, 45, 41, 56],
+        'Brand_E_Change': [-1, 1, -1, 1, -1, -2, 1, -1, 1, 1, -1, 2, 1, -1, 2, 4]
     })
 
     export_data = ExportData(
