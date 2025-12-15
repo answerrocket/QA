@@ -45,18 +45,25 @@ def viz_parameter_render(skill_input: SkillInput) -> SkillOutput:
     viz_layout = skill_input.arguments.viz_layout
     viz_ppt_layout = skill_input.arguments.viz_ppt_layout
 
-    if viz_layout:
-        raw_layout = json.loads(viz_layout)
-        layout = {"layoutJson": raw_layout, "inputVariables": []}
+    # Determine which layouts to use based on what's provided
+    if viz_layout and viz_ppt_layout:
+        # Both provided - each uses its own
+        layout = json.loads(viz_layout)
+        ppt_layout = json.loads(viz_ppt_layout)
+    elif viz_layout:
+        # Only viz provided - use for both
+        layout = json.loads(viz_layout)
+        ppt_layout = layout
+    elif viz_ppt_layout:
+        # Only ppt provided - use for both
+        ppt_layout = json.loads(viz_ppt_layout)
+        layout = ppt_layout
     else:
+        # Neither provided - use default for both
         layout = json.loads(DEFAULT_LAYOUT)
-    layout_json_string = wire_layout(layout, input_values={})
+        ppt_layout = layout
 
-    if viz_ppt_layout:
-        raw_ppt_layout = json.loads(viz_ppt_layout)
-        ppt_layout = {"layoutJson": raw_ppt_layout, "inputVariables": []}
-    else:
-        ppt_layout = json.loads(DEFAULT_LAYOUT)
+    layout_json_string = wire_layout(layout, input_values={})
     ppt_layout_json_string = wire_layout(ppt_layout, input_values={})
 
     # Wrap in SkillVisualization
