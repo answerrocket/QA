@@ -2,20 +2,22 @@ import json
 from skill_framework import skill, SkillOutput, SkillParameter, SkillInput, SkillVisualization
 from skill_framework.layouts import wire_layout
 
-DEFAULT_LAYOUT = """
-{
-  "type": "Canvas",
-  "rows": 90,
-  "columns": 160,
-  "rowHeight": "1.11%",
-  "colWidth": "0.625%",
-  "gap": "0px",
-  "style": {
-    "backgroundColor": "#ffffff",
-    "width": "100%",
-    "height": "100%"
+DEFAULT_LAYOUT = """{
+  "layoutJson": {
+    "type": "Canvas",
+    "rows": 90,
+    "columns": 160,
+    "rowHeight": "1.11%",
+    "colWidth": "0.625%",
+    "gap": "0px",
+    "style": {
+      "backgroundColor": "#ffffff",
+      "width": "100%",
+      "height": "100%"
+    },
+    "children": []
   },
-  "children": []
+  "inputVariables": []
 }
 """
 
@@ -42,10 +44,18 @@ def viz_parameter_render(skill_input: SkillInput) -> SkillOutput:
     viz_layout = skill_input.arguments.viz_layout
     viz_ppt_layout = skill_input.arguments.viz_ppt_layout
 
-    layout = json.loads(viz_layout) if viz_layout else json.loads(DEFAULT_LAYOUT)
+    if viz_layout:
+        raw_layout = json.loads(viz_layout)
+        layout = {"layoutJson": raw_layout, "inputVariables": []}
+    else:
+        layout = json.loads(DEFAULT_LAYOUT)
     layout_json_string = wire_layout(layout, input_values={})
 
-    ppt_layout = json.loads(viz_ppt_layout) if viz_ppt_layout else json.loads(DEFAULT_LAYOUT)
+    if viz_ppt_layout:
+        raw_ppt_layout = json.loads(viz_ppt_layout)
+        ppt_layout = {"layoutJson": raw_ppt_layout, "inputVariables": []}
+    else:
+        ppt_layout = json.loads(DEFAULT_LAYOUT)
     ppt_layout_json_string = wire_layout(ppt_layout, input_values={})
 
     # Wrap in SkillVisualization
@@ -57,5 +67,5 @@ def viz_parameter_render(skill_input: SkillInput) -> SkillOutput:
     return SkillOutput(
         final_prompt="Here is the visualization you requested.",
         visualizations=[visualization],
-        ppt_slides=ppt_layout_json_string
+        ppt_slides=[ppt_layout_json_string]
     )
