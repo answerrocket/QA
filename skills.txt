@@ -1,3 +1,6 @@
-export_large_df.py
-special_tab_names.py
-table_block_diagnostics.py
+basic_data_bar_chart
+time_series_line_chart
+data_table_display
+longArtifactsMultiTabs
+viz_parameter_render
+multiTabs
