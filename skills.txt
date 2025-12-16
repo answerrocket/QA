@@ -1,6 +1,9 @@
 basic_data_bar_chart
-time_series_line_chart
 data_table_display
+export_large_df
 longArtifactsMultiTabs
-viz_parameter_render
 multiTabs
+special_tab_names
+table_block_diagnostics
+time_series_line_chart
+viz_parameter_render
